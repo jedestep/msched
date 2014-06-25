@@ -1,4 +1,6 @@
 import json
+import inspect
+
 class Event(object):
     def __init__(self, obj):
         self.obj = obj
@@ -16,9 +18,14 @@ def make_event_registrar():
     registry = {}
     def registrar(ev):
         def decorator(fn):
+            argspec = inspect.getargspec(fn)
             obj = {
                 'matcher': ev.obj,
-                'responder': fn
+                'responder': fn,
+                'args': argspec.args,
+                'varargs': argspec.varargs,
+                'keywords': argspec.keywords,
+                'defaults': argspec.defaults
             }
             if ev.t in registry:
                 registry[ev.t].append(obj)

@@ -12,6 +12,7 @@ import json
 
 __ACTION_MAP = {}
 DEBUG = False
+#DEBUG = True
 
 def is_struct_subtype(smalltype, bigtype):
     for k,v in smalltype.iteritems():
@@ -19,18 +20,27 @@ def is_struct_subtype(smalltype, bigtype):
             return False
     return True
 
+def process_doc(doc):
+    try:
+        possible_ops = __ACTION_MAP[str(doc['op'])]
+        for p in possible_ops:
+            if is_struct_subtype(p['matcher'], doc['o']):
+                kwargs = {}
+                for arg in p['args']:
+                    if arg in doc['o'].keys():
+                        kwargs.update({arg: doc['o'][arg]})
+                if DEBUG:
+                    print "kwargs is", kwargs
+                p['responder'](**kwargs)
+    except KeyError:
+        if DEBUG:
+            print "no ops were registered of type", repr(doc['op'])
+        continue
+
 def listen_forever(cursor):
     while True:
         for doc in cursor:
-            try:
-                possible_ops = __ACTION_MAP[doc['op']]
-                for p in possible_ops:
-                    if is_struct_subtype(p['matcher'], doc['o']):
-                        p['responder']()
-            except KeyError:
-                if DEBUG:
-                    print "no ops were registered of type", doc['op']
-                continue
+            process_doc(doc)
 
 if __name__ == '__main__':
     ## Import the scheduler

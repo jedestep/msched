@@ -11,6 +11,7 @@ from msched import on_event, Insert
 def foo():
     print "hello world!"
 ```
+Now, whenever any collection receives an insert where the _id field is 1, foo() will be called.
 
 Now that your scheduler file is ready to go, simply start up the runner:
 ``` > sudo python runner.py 27017```
