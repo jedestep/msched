@@ -6,7 +6,7 @@ import sys
 import os
 import time
 import subprocess
-import importlib
+import imp
 import inspect
 import json
 
@@ -26,16 +26,17 @@ def process_doc(doc):
         for p in possible_ops:
             if is_struct_subtype(p['matcher'], doc['o']):
                 kwargs = {}
-                for arg in p['args']:
-                    if arg in doc['o'].keys():
-                        kwargs.update({arg: doc['o'][arg]})
-                if DEBUG:
-                    print "kwargs is", kwargs
-                p['responder'](**kwargs)
+                #special case: if **doc is an argument, just pass the whole thing
+                if 'doc' in p['keywords']:
+                    p['responder'](**(doc['o']))
+                else:
+                    for arg in p['args']:
+                        if arg in doc['o'].keys():
+                            kwargs.update({arg: doc['o'][arg]})
+                    p['responder'](**kwargs)
     except KeyError:
         if DEBUG:
             print "no ops were registered of type", repr(doc['op'])
-        continue
 
 def listen_forever(cursor):
     while True:
@@ -44,7 +45,7 @@ def listen_forever(cursor):
 
 if __name__ == '__main__':
     ## Import the scheduler
-    import mscheduler
+    imp.load_source('mscheduler', os.getcwd() + '/mscheduler.py')
 
     ## Default mport
     mport = '31337'
@@ -88,8 +89,6 @@ if __name__ == '__main__':
                 raise e
     ## Access the oplog
     oplog = pymongo.MongoClient('localhost:'+str(mport))['local']['oplog.rs']
-
-    ## Find most recent entry
 
     ## Set up tailing cursor
     ts = Timestamp(int(time.time()), 1)
