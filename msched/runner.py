@@ -1,7 +1,9 @@
+#!/usr/bin/env python
+
 from bson.timestamp import Timestamp
 from msched import on_event
 
-import worker
+import msched.worker as worker
 
 import pymongo
 import imp
@@ -57,7 +59,11 @@ def listen_forever(cursor):
 
 if __name__ == '__main__':
     ## Import the scheduler
-    imp.load_source('mscheduler', os.getcwd() + '/mscheduler.py')
+    try:
+        imp.load_source('mscheduler', os.getcwd() + '/mscheduler.py')
+    except:
+        print "No mscheduler.py found"
+        sys.exit(1)
 
     ## Default mport
     mport = '31337'
@@ -73,11 +79,6 @@ if __name__ == '__main__':
 
         if not os.access('/etc/msched/data', os.F_OK):
             os.mkdir('/etc/msched/data')
-
-        ## Set up the action map
-        __ACTION_MAP = on_event.lookup
-        if DEBUG:
-            print "actionmap", __ACTION_MAP
 
         ## Boot up mongod
         try:
@@ -99,6 +100,12 @@ if __name__ == '__main__':
                 print "warn: mongod failed to start with error code 100. continuing"
             else:
                 raise e
+
+    ## Set up the action map
+    __ACTION_MAP = on_event.lookup
+    if DEBUG:
+        print "actionmap", __ACTION_MAP
+
     ## Access the oplog
     oplog = pymongo.MongoClient('localhost:'+str(mport))['local']['oplog.rs']
 
