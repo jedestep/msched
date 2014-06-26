@@ -17,6 +17,8 @@ def make_event_registrar():
                 obj.update({'db': ev.db})
             if ev.coll:
                 obj.update({'coll': ev.coll})
+            if hasattr(ev, 'o2'):
+                obj.update({'o2': ev.o2})
             if ev.t in registry:
                 registry[ev.t].append(obj)
             else:

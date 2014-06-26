@@ -18,7 +18,7 @@ import json
 POOL = worker.WorkerPool()
 __ACTION_MAP = {}
 DEBUG = False
-#DEBUG = True
+DEBUG = True
 
 def is_struct_subtype(smalltype, bigtype):
     for k,v in smalltype.iteritems():
@@ -30,7 +30,10 @@ def process_doc(doc):
     try:
         possible_ops = __ACTION_MAP[str(doc['op'])]
         for p in possible_ops:
-            if is_struct_subtype(p['matcher'], doc['o']):
+            smalltype = 'o'
+            if doc['op'] == 'u':
+                smalltype = 'o2'
+            if is_struct_subtype(p['matcher'], doc[smalltype]):
                 kwargs = {}
                 #resolve db/coll requests
                 if 'db' in p or 'coll' in p:

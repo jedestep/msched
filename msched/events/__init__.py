@@ -1,1 +1,1 @@
-from events import Insert
+from events import Insert, Delete, Update
