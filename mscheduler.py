@@ -2,7 +2,7 @@
 
 from msched import on_event, Insert
 
-@on_event(Insert({'_id': 1.0}))
+@on_event(Insert({'_id': 1.0}, db='test', coll='test'))
 def foo():
     print "foo just printed hello!"
 

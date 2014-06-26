@@ -1,15 +1,19 @@
 from bson.timestamp import Timestamp
 from msched import on_event
 
+import worker
+
 import pymongo
+import imp
+
 import sys
 import os
 import time
 import subprocess
-import imp
 import inspect
 import json
 
+POOL = worker.WorkerPool()
 __ACTION_MAP = {}
 DEBUG = False
 #DEBUG = True
@@ -26,14 +30,22 @@ def process_doc(doc):
         for p in possible_ops:
             if is_struct_subtype(p['matcher'], doc['o']):
                 kwargs = {}
+                #resolve db/coll requests
+                if 'db' in p or 'coll' in p:
+                    target = doc['ns'].split('.')
+                    db, coll = target[0], '.'.join(target[1:])
+                    if 'db' in p and not p['db'] == db:
+                        continue
+                    if 'coll' in p and not p['coll'] == coll:
+                        continue
                 #special case: if **doc is an argument, just pass the whole thing
-                if 'doc' in p['keywords']:
-                    p['responder'](**(doc['o']))
+                if p['keywords'] and 'doc' in p['keywords']:
+                    POOL.worker_for(p['responder'], doc['o'])
                 else:
                     for arg in p['args']:
                         if arg in doc['o'].keys():
                             kwargs.update({arg: doc['o'][arg]})
-                    p['responder'](**kwargs)
+                    POOL.worker_for(p['responder'], kwargs)
     except KeyError:
         if DEBUG:
             print "no ops were registered of type", repr(doc['op'])
