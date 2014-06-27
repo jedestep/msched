@@ -6,25 +6,32 @@ from msched import on_event
 import msched.worker as worker
 
 import pymongo
-import imp
+import json
 
+import py_compile
+import imp
 import sys
 import os
 import time
 import subprocess
 import inspect
-import json
 
 POOL = worker.WorkerPool()
 __ACTION_MAP = {}
 DEBUG = False
-DEBUG = True
+#DEBUG = True
 
 def is_struct_subtype(smalltype, bigtype):
     for k,v in smalltype.iteritems():
         if not(k in bigtype and bigtype[k] == v):
             return False
     return True
+
+def run_fn(fn, args, is_blocking):
+    if is_blocking:
+        fn(**args)
+    else:
+        POOL.worker_for(fn, args)
 
 def process_doc(doc):
     try:
@@ -45,12 +52,12 @@ def process_doc(doc):
                         continue
                 #special case: if **doc is an argument, just pass the whole thing
                 if p['keywords'] and 'doc' in p['keywords']:
-                    POOL.worker_for(p['responder'], doc['o'])
+                    run_fn(p['responder'], doc['o'], p['blocking'])
                 else:
                     for arg in p['args']:
                         if arg in doc['o'].keys():
                             kwargs.update({arg: doc['o'][arg]})
-                    POOL.worker_for(p['responder'], kwargs)
+                    run_fn(p['responder'], kwargs, p['blocking'])
     except KeyError:
         if DEBUG:
             print "no ops were registered of type", repr(doc['op'])
@@ -64,8 +71,9 @@ if __name__ == '__main__':
     ## Import the scheduler
     try:
         imp.load_source('mscheduler', os.getcwd() + '/mscheduler.py')
-    except:
-        print "No mscheduler.py found"
+    except Exception as e:
+        print "No mscheduler.py found in", os.getcwd() + '/mscheduler.py'
+        print str(e)
         sys.exit(1)
 
     ## Default mport

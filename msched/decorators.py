@@ -2,10 +2,11 @@ import inspect
 
 def make_event_registrar():
     registry = {}
-    def registrar(ev):
+    def registrar(ev, blocking=False):
         def decorator(fn):
             argspec = inspect.getargspec(fn)
             obj = {
+                'blocking': blocking,
                 'matcher': ev.obj,
                 'responder': fn,
                 'args': argspec.args,
