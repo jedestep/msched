@@ -1,6 +1,13 @@
 ## msched - Events in MongoDB
 ```msched``` uses the MongoDB oplog to to turn your day-to-day database operations into event triggers for arbitrary Python code. More than anything, ```msched``` is a simple, no-nonsense extension for any replicated MongoDB instance that is extremely easy and intuitive.
 
+### Installing msched
+```bash
+git clone https://github.com/jedestep/msched
+cd msched
+sudo python setup.py install
+```
+
 ### Using msched
 All you need to do to use ```msched``` is insert the functions you want to be run in a file called ```mscheduler.py```, and then start the ```runner``` script. Here's an example:
 
@@ -28,7 +35,7 @@ def bar(**doc):       # the special argument name **doc causes the whole documen
 ```
 
 Now that your scheduler file is ready to go, simply start up the runner:
-```
+```bash
 $ sudo python runner.py 27017
 ```
 
