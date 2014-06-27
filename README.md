@@ -1,15 +1,15 @@
 ## msched - Events in MongoDB
-```msched``` uses the MongoDB oplog to to turn your day-to-day database operations into event triggers for arbitrary Python code. More than anything, ```msched``` is a simple, no-nonsense extension for any replicated MongoDB instance that is extremely easy and intuitive.
+Use the MongoDB oplog to schedule operations with Python. 
 
-### Installing msched
+### Installation
 ```bash
 git clone https://github.com/jedestep/msched
 cd msched
 sudo python setup.py install
 ```
 
-### Using msched
-All you need to do to use ```msched``` is insert the functions you want to be run in a file called ```mscheduler.py```, and then start the ```runner``` script. Here's an example:
+### Quick start
+All you need to do to use ```msched``` is insert the functions you want to be run in a file called ```mscheduler.py```, and then start the ```msched``` daemon. Here's an example:
 
 ```python
 from msched import on_event, Insert
@@ -36,7 +36,7 @@ def bar(**doc):       # the special argument name **doc causes the whole documen
 
 Now that your scheduler file is ready to go, simply start up the runner:
 ```bash
-$ sudo python runner.py 27017
+$ msched 27017
 ```
 
 The argument to the runner is a port to be used to connect to your replica set. If you just want to use ```msched``` for message passing and do not have an existing replicated MongoDB instance, omit the port and a single-member replica set will boot up on port 31337.
