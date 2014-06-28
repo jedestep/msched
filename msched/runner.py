@@ -8,7 +8,6 @@ import msched.worker as worker
 import pymongo
 import json
 
-import py_compile
 import imp
 import sys
 import os
@@ -68,22 +67,33 @@ def listen_forever(cursor):
             process_doc(doc)
 
 if __name__ == '__main__':
-    ## Import the scheduler
-    try:
-        imp.load_source('mscheduler', os.getcwd() + '/mscheduler.py')
-    except Exception as e:
-        print "No mscheduler.py found in", os.getcwd() + '/mscheduler.py'
-        print str(e)
-        sys.exit(1)
+    ## Parse arguments
+    import argparse
+    parser = argparse.ArgumentParser()
 
-    ## Default mport
-    mport = '31337'
+    # 'files' argument
+    parser.add_argument('--files', '-f', nargs='+', help='one or more source files', default=['mscheduler.py'])
 
-    ## See if the user wants to supply a replset
-    if len(sys.argv) > 1:
-        mport = sys.argv[1]
+    # 'port' argument
+    parser.add_argument('--port', '-p', type=int, default=27017)
 
-    else:
+    # 'build-queue' argument
+    parser.add_argument('--build-queue', '-b', action='store_true')
+
+    args = parser.parse_args()
+
+    ## Import the scheduler file(s)
+    os.chdir(os.getcwd())
+    for f in args.files:
+        try:
+            mod_name = f.split('.')[0]
+            imp.load_source(mod_name, f)
+        except Exception as e:
+            print "No %s found in" % f, os.getcwd()
+            print str(e)
+            sys.exit(1)
+
+    if args.build_queue:
         ## Directory plumbing
         if not os.access('/etc/msched', os.F_OK):
             os.mkdir('/etc/msched')
@@ -118,7 +128,7 @@ if __name__ == '__main__':
         print "actionmap", __ACTION_MAP
 
     ## Access the oplog
-    oplog = pymongo.MongoClient('localhost:'+str(mport))['local']['oplog.rs']
+    oplog = pymongo.MongoClient('localhost:'+str(args.port))['local']['oplog.rs']
 
     ## Set up tailing cursor
     ts = Timestamp(int(time.time()), 1)
