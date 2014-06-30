@@ -33,31 +33,30 @@ def run_fn(fn, args, is_blocking):
         POOL.worker_for(fn, args)
 
 def process_doc(doc):
-    print "processing", doc
     try:
         possible_ops = __ACTION_MAP[str(doc['op'])]
         for p in possible_ops:
             smalltype = 'o'
             if doc['op'] == 'u':
                 smalltype = 'o2'
-            if is_struct_subtype(p['matcher'], doc[smalltype]):
+            if is_struct_subtype(p.matcher, doc[smalltype]):
                 kwargs = {}
                 #resolve db/coll requests
-                if 'db' in p or 'coll' in p:
+                if p.db or p.coll:
                     target = doc['ns'].split('.')
                     db, coll = target[0], '.'.join(target[1:])
-                    if 'db' in p and not p['db'] == db:
+                    if p.db and not p.db == db:
                         continue
-                    if 'coll' in p and not p['coll'] == coll:
+                    if p.coll and not p.coll == coll:
                         continue
                 #special case: if **doc is an argument, just pass the whole thing
-                if p['keywords'] and 'doc' in p['keywords']:
-                    run_fn(p['responder'], doc['o'], p['blocking'])
+                if p.argspec.keywords and 'doc' in p.argspec.keywords:
+                    run_fn(p.responder, doc['o'], p.blocking)
                 else:
-                    for arg in p['args']:
+                    for arg in p.argspec.args:
                         if arg in doc['o'].keys():
                             kwargs.update({arg: doc['o'][arg]})
-                    run_fn(p['responder'], kwargs, p['blocking'])
+                    run_fn(p.responder, kwargs, p.blocking)
     except KeyError:
         if DEBUG:
             print "no ops were registered of type", repr(doc['op'])
@@ -86,13 +85,8 @@ if __name__ == '__main__':
     ## Import the scheduler file(s)
     os.chdir(os.getcwd())
     for f in args.files:
-        try:
-            mod_name = f.split('.')[0]
-            imp.load_source(mod_name, f)
-        except Exception as e:
-            print "No %s found in" % f, os.getcwd()
-            print str(e)
-            sys.exit(1)
+        mod_name = f.split('.')[0]
+        imp.load_source(mod_name, f)
 
     if args.build_queue:
         ## Directory plumbing
