@@ -9,7 +9,7 @@ sudo python setup.py install
 ```
 
 ### Quick start
-All you need to do to use ```msched``` is insert the functions you want to be run in a file called ```mscheduler.py```, and then start the ```msched``` daemon. Here's an example:
+All you need to do to use ```msched``` is decorate the functions you want to run with the ```on_event``` decorator, and then start the ```msched``` worker with the filename as the argument. Here's an example:
 
 ```python
 from msched import on_event, Insert
@@ -34,9 +34,9 @@ def bar(**doc):       # the special argument name **doc causes the whole documen
     print "bar", doc
 ```
 
-Now that your scheduler file is ready to go, simply start up the runner:
+Now that your scheduler file is ready to go, simply start up the worker:
 ```bash
-$ msched 27017
+$ msched -p 27017 -f myfile.py
 ```
 
-The argument to the runner is a port to be used to connect to your replica set. If you just want to use ```msched``` for message passing and do not have an existing replicated MongoDB instance, omit the port and a single-member replica set will boot up on port 31337.
+The argument to the worker is a port to be used to connect to your replica set. If you just want to use ```msched``` for message passing and do not have an existing replicated MongoDB instance, add the ```-b``` flag.

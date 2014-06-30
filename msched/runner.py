@@ -33,6 +33,7 @@ def run_fn(fn, args, is_blocking):
         POOL.worker_for(fn, args)
 
 def process_doc(doc):
+    print "processing", doc
     try:
         possible_ops = __ACTION_MAP[str(doc['op'])]
         for p in possible_ops:
@@ -113,12 +114,12 @@ if __name__ == '__main__':
                 '--dbpath',
                 '/etc/msched/data',
                 '--port',
-                '31337',
+                str(args.port),
                 '--fork'
                 ])
         except subprocess.CalledProcessError as e:
             if e.returncode == 100:
-                print "warn: mongod failed to start with error code 100. continuing"
+                print "warn: mongod failed to start with error code 100. This probably means it was already running."
             else:
                 raise e
 
