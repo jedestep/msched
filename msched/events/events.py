@@ -74,7 +74,8 @@ class Any(Event):
         self.t = ['i', 'd', 'u']
 
     def get_json(self):
-        return {'ANY': 'ANY'}
+        return {'ANY': 'ANY',
+                'matcher': {}}
 
     def register_with(self, obj, registry):
         for t in self.t:

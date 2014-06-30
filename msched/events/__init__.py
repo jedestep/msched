@@ -1,1 +1,1 @@
-from events import Insert, Delete, Update, EventRecord
+from events import Insert, Delete, Update, Any, EventRecord

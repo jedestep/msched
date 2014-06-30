@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from bson.timestamp import Timestamp
-from msched import on_event
+from msched import on_event, Any
 
 import msched.worker as worker
 
@@ -22,7 +22,7 @@ DEBUG = False
 
 def is_struct_subtype(smalltype, bigtype):
     for k,v in smalltype.iteritems():
-        if not(k in bigtype and bigtype[k] == v):
+        if not(k in bigtype and (bigtype[k] == v or isinstance(smalltype[k], Any))):
             return False
     return True
 
@@ -36,10 +36,10 @@ def process_doc(doc):
     try:
         possible_ops = __ACTION_MAP[str(doc['op'])]
         for p in possible_ops:
-            smalltype = 'o'
+            bigtype = 'o'
             if doc['op'] == 'u':
-                smalltype = 'o2'
-            if is_struct_subtype(p.matcher, doc[smalltype]):
+                bigtype = 'o2'
+            if is_struct_subtype(p.matcher, doc[bigtype]):
                 kwargs = {}
                 #resolve db/coll requests
                 if p.db or p.coll:
