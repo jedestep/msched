@@ -40,3 +40,28 @@ $ msched -p 27017 -f myfile.py
 ```
 
 The argument to the worker is a port to be used to connect to your replica set. If you just want to use ```msched``` for message passing and do not have an existing replicated MongoDB instance, add the ```-b``` flag.
+
+### Advanced events
+The ```Insert``` events demonstrated above only fire when a document is inserted with the exact key-value pairs defined in its predicate. Obviously there are a lot more behaviors than this which are useful, so several other types of events are available. Here are some examples:
+
+```python
+from msched import on_event, Insert, Delete, Any  # Update is coming in the next version!
+
+@on_event(Any())
+def f1():
+    print 'this fires whenever anything happens; be careful!'
+
+@on_event(Insert({'foo': Any()}))
+def f2():
+    print 'this fires whenever anything is inserted with a "foo" field'
+
+@on_event(Delete({'bar': 1}))
+def f3():
+    print 'this fires whenever a document is deleted where "bar" is 1'
+    print 'the deleted document will be used to pass in arguments'
+
+@on_event(Insert({'foo': Any()}) | Insert({'bar': Any()}))
+def f4():
+    print 'this fires when a document with either a foo or a bar field is inserted'
+    print 'you can mix insert, delete, and update in conjunctions'
+```
