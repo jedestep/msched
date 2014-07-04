@@ -77,6 +77,9 @@ if __name__ == '__main__':
     # 'port' argument
     parser.add_argument('--port', '-p', type=int, default=27017)
 
+    # 'server' argument
+    parser.add_argument('--server', 's', default='localhost')
+
     # 'build-queue' argument
     parser.add_argument('--build-queue', '-b', action='store_true')
 
@@ -122,8 +125,14 @@ if __name__ == '__main__':
     if DEBUG:
         print "actionmap", __ACTION_MAP
 
+    ## Log the server and port
+    if not os.access('~/.msched', os.F_OK):
+        os.mkdir('~/.msched')
+    logfile = open('~/.msched/msched')
+    logfile.write('server=%s\nport=%s' % (server, str(port)))
+
     ## Access the oplog
-    oplog = pymongo.MongoClient('localhost:'+str(args.port))['local']['oplog.rs']
+    oplog = pymongo.MongoClient(args.server+':'+str(args.port))['local']['oplog.rs']
 
     ## Set up tailing cursor
     ts = Timestamp(int(time.time()), 1)

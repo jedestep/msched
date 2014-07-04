@@ -65,3 +65,20 @@ def f4():
     print 'this fires when a document with either a foo or a bar field is inserted'
     print 'you can mix insert, delete, and update in conjunctions'
 ```
+
+### Turning output into events
+In some cases (such as using msched alongside [fabric](http://fabfile.org)), it's impractical or unsightly to have database code in your application logic where it's otherwise not used. In this case, you can wrap the outputs of your code (to stdout and stderr) as an event.
+
+```python
+import sys
+from msched import as_event, CaptureStdOut
+
+@as_event(capture=CaptureStdOut(), echo=sys.stdout)
+def foo():
+    print 'things that go to stdout will be logged in the msched.userdef collection'
+    print 'the function name, timestamp, return value and pid will also be included'
+    print 'returned is a pair of the format (<return val>, <output as a list of strs>)'
+    return 0
+```
+
+_Important note_: the ```as_event``` decorator should ONLY be used for functions that will produce a very low write load. _If you are not already using a replicated MongoDB instance to store data, do not use msched_. Using a database for IPC is a [well-known anti pattern](http://en.wikipedia.org/wiki/Database-as-IPC) and a replicated MongoDB instance is way larger than necessary for simple message passing.
