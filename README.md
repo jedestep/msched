@@ -23,15 +23,17 @@ Now, whenever any collection receives an insert where the ```_id``` field is 1, 
 ```foo``` doesn't have to be a nullary function. Event handlers can also be set up to process some or all of the information that triggered it.
 
 ```python
+# myfile.py
 from msched import on_event, Insert
 
 @on_event(Insert({'_id': 1}))
-def foo(a,b):         # the a and b fields of the inserted documents are used as the arguments
-    print "foo", a+b  # if the document does not have both a and b as fields, an error is raised
+def foo(a,b):
+    print 'the a and b fields of the inserted documents are used as the arguments'
+    print 'it is an error if the document does not have both a and b'
 
 @on_event(Insert({'_id': 2}))
-def bar(**doc):       # the special argument name **doc causes the whole document to be passed in 
-    print "bar", doc
+def bar(**doc): 
+    print 'the special argument name **doc causes the whole document to be passed in'
 ```
 
 Now that your scheduler file is ready to go, simply start up the worker:
@@ -67,7 +69,7 @@ def f4():
 ```
 
 ### Turning output into events
-In some cases (such as using msched alongside [fabric](http://fabfile.org)), it's impractical or unsightly to have database code in your application logic where it's otherwise not used. In this case, you can wrap the outputs of your code (to stdout and stderr) as an event.
+In some cases (such as using msched alongside [fabric](http://fabfile.org)), it's impractical or unsightly to have database code in your application logic where it's otherwise not used. At the same time, you may want low-volume but mission-critical alerts to be logged in your database and also trigger an alert (in a fabric example, a failure returned by the ssh client). In this case, you can wrap the outputs of your code (stdout and stderr) as an event.
 
 ```python
 import sys
