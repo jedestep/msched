@@ -21,10 +21,8 @@ def as_event(capture=None, echo=None):
                 result = fn(*args, **kwargs)
             # TODO generalize
             key = 'output'
-            if isinstance(capture, CaptureStdOut):
-                key = 'stdout'
-            elif isinstance(capture, CaptureStdErr):
-                key = 'stderr'
+            if capture:
+                key = capture.chan
             queue.insert({
                 'caller_pid': pid,
                 'fname': fname,
@@ -33,7 +31,8 @@ def as_event(capture=None, echo=None):
                 key: output
             })
             if echo:
-                echo.write('\n'.join(output))
+                for stream in echo:
+                    echo.write('\n'.join(output))
             return result, output
         return interior_crocodile_alligator
     return decorator
